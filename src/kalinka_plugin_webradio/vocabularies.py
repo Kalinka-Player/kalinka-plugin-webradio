@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Dict, Generic, List, Mapping, Optional, Tuple, TypeVar
 
-from .directory import DirectoryUnavailable, StationDirectory
+from .directory import BY_STATION_COUNT, DirectoryUnavailable, StationDirectory
 from .stations import country_label
 
 logger = logging.getLogger(__name__)
@@ -107,10 +107,7 @@ class Vocabularies:
     async def tags_containing(self, text: str, limit: int) -> List[Tuple[str, int]]:
         """Tags containing ``text`` with their station counts, most used first.
         Asked afresh each time: it answers type-ahead."""
-        rows = await self._client.tags(
-            {"order": "stationcount", "reverse": "true", "hidebroken": "true", "limit": limit},
-            name_contains=text,
-        )
+        rows = await self._client.tags({**BY_STATION_COUNT, "limit": limit}, name_contains=text)
         return [
             (str(row["name"]).strip().casefold(), int(row.get("stationcount") or 0))
             for row in rows
@@ -146,14 +143,7 @@ class Vocabularies:
         )
 
     async def _load_tag_counts(self) -> Dict[str, int]:
-        rows = await self._client.tags(
-            {
-                "order": "stationcount",
-                "reverse": "true",
-                "hidebroken": "true",
-                "limit": self.TAG_COUNTS_LIMIT,
-            }
-        )
+        rows = await self._client.tags({**BY_STATION_COUNT, "limit": self.TAG_COUNTS_LIMIT})
         return {
             str(row["name"]).strip().casefold(): int(row.get("stationcount") or 0)
             for row in rows

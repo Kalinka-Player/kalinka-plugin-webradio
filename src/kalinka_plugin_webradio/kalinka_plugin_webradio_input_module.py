@@ -164,15 +164,13 @@ class WebRadioInputModule(InputModule):
         raise LookupError(f"No {entity_id.to_string} in {DISPLAY_NAME}")
 
     async def get_all(self, entity_ids: List[EntityId]) -> List[BrowseItem]:
-        """Stations in one directory request; anything else one by one."""
+        """Stations in one directory request, anything else one by one, concurrently."""
         uuids = [entity.id for entity in entity_ids if entity.type == EntityType.TRACK]
-        try:
-            stations = await self._stations_by_uuid(uuids)
-        except DirectoryUnavailable as e:
-            logger.info("Resolving remembered stations only: %s", e)
-            stations = self._remembered(uuids)
-        others = await super().get_all(
-            [entity for entity in entity_ids if entity.type != EntityType.TRACK]
+        stations, others = await asyncio.gather(
+            self._stations_or_remembered(uuids),
+            super().get_all(
+                [entity for entity in entity_ids if entity.type != EntityType.TRACK]
+            ),
         )
         others_by_id = {item.id: item for item in others}
         items = []
@@ -275,6 +273,13 @@ class WebRadioInputModule(InputModule):
             self._remember(stations)
             found.update((station.uuid, station) for station in stations if station.uuid in chunk)
         return found
+
+    async def _stations_or_remembered(self, uuids: Sequence[str]) -> Dict[str, Station]:
+        try:
+            return await self._stations_by_uuid(uuids)
+        except DirectoryUnavailable as e:
+            logger.info("Resolving remembered stations only: %s", e)
+            return self._remembered(uuids)
 
     def _remembered(self, uuids: Iterable[str]) -> Dict[str, Station]:
         return {uuid: self._stations[uuid] for uuid in uuids if uuid in self._stations}

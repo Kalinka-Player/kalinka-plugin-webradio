@@ -1,3 +1,5 @@
+import asyncio
+
 import httpx
 import pytest
 
@@ -144,6 +146,38 @@ async def test_a_slow_server_is_not_retried_elsewhere():
         await client.countries()
 
     assert server.hosts == ["a.example"]
+
+
+async def test_a_slow_server_is_asked_last_from_then_on():
+    server = Server(a_example=httpx.ConnectTimeout("hung"), b_example=ok())
+    client = client_for(server)
+
+    with pytest.raises(DirectoryUnavailable):
+        await client.countries()
+    await client.countries()
+
+    assert server.hosts == ["a.example", "b.example"]
+
+
+async def test_a_trickling_answer_is_cut_off_at_the_deadline():
+    async def trickle(request):
+        await asyncio.sleep(1)
+        return ok()
+
+    client = RadioBrowserClient(
+        httpx.AsyncClient(transport=httpx.MockTransport(trickle)), Mirrors(["a.example"])
+    )
+    client.DEADLINE_S = 0.01
+
+    with pytest.raises(DirectoryUnavailable):
+        await asyncio.wait_for(client.countries(), timeout=0.5)
+
+
+async def test_a_rate_limited_server_hands_over_to_the_next():
+    server = Server(a_example=httpx.Response(429), b_example=ok([{"name": "x"}]))
+    client = client_for(server)
+
+    assert await client.countries() == [{"name": "x"}]
 
 
 async def test_a_rejected_request_is_raised_as_it_is():

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import random
 from typing import Any, Callable, List, Mapping, MutableSequence, Optional, Protocol, Sequence
@@ -9,10 +10,9 @@ logger = logging.getLogger(__name__)
 
 DISCOVERY_HOST = "all.api.radio-browser.info"
 
-# Inside the server's 3 s budget for a call, leaving room for a second server.
-TIMEOUT = httpx.Timeout(2.0, connect=1.0)
-
 Params = Mapping[str, str | int]
+
+BY_STATION_COUNT = {"order": "stationcount", "reverse": "true", "hidebroken": "true"}
 
 
 class DirectoryUnavailable(RuntimeError):
@@ -80,6 +80,8 @@ class RadioBrowserClient(StationDirectory):
 
     # A failing server costs one retry on the next, never a third request.
     ATTEMPTS = 2
+    # A whole request, inside the server's 3 s budget; httpx times only each read.
+    DEADLINE_S = 2.0
 
     def __init__(self, http: httpx.AsyncClient, mirrors: Optional[Mirrors] = None):
         self._http = http
@@ -89,7 +91,7 @@ class RadioBrowserClient(StationDirectory):
     def create(cls, user_agent: str) -> "RadioBrowserClient":
         return cls(
             httpx.AsyncClient(
-                timeout=TIMEOUT,
+                timeout=httpx.Timeout(cls.DEADLINE_S, connect=1.0),
                 headers={"User-Agent": user_agent},
                 follow_redirects=True,
             )
@@ -103,7 +105,7 @@ class RadioBrowserClient(StationDirectory):
         discovery name, which resolves to all of them."""
         try:
             servers = await self._get(DISCOVERY_HOST, "/json/servers", {})
-        except (httpx.HTTPError, ValueError) as e:
+        except (httpx.HTTPError, TimeoutError, ValueError) as e:
             logger.warning("Could not list the radio-browser servers: %s", e)
             return
         self._mirrors.replace(
@@ -124,10 +126,10 @@ class RadioBrowserClient(StationDirectory):
         return await self._request(path, params)
 
     async def countries(self) -> List[dict]:
-        return await self._request("/json/countries", _BY_STATION_COUNT)
+        return await self._request("/json/countries", BY_STATION_COUNT)
 
     async def languages(self) -> List[dict]:
-        return await self._request("/json/languages", _BY_STATION_COUNT)
+        return await self._request("/json/languages", BY_STATION_COUNT)
 
     async def count_click(self, station_uuid: str) -> None:
         """Tell the directory a station was played, which is what its
@@ -139,11 +141,12 @@ class RadioBrowserClient(StationDirectory):
         for host in self._mirrors.hosts[: self.ATTEMPTS]:
             try:
                 return await self._get(host, path, params)
-            except httpx.TimeoutException as e:
+            except (httpx.TimeoutException, TimeoutError) as e:
                 # The call's budget is spent; asking another server would overrun it.
+                self._mirrors.demote(host)
                 raise DirectoryUnavailable("radio-browser.info did not answer in time") from e
             except httpx.HTTPStatusError as e:
-                if e.response.status_code < 500:
+                if e.response.status_code < 500 and e.response.status_code != 429:
                     raise
                 failure = e
             except (httpx.TransportError, ValueError) as e:
@@ -153,9 +156,7 @@ class RadioBrowserClient(StationDirectory):
         raise DirectoryUnavailable("radio-browser.info cannot be reached") from failure
 
     async def _get(self, host: str, path: str, params: Params) -> Any:
-        response = await self._http.get(f"https://{host}{path}", params=params)
+        async with asyncio.timeout(self.DEADLINE_S):
+            response = await self._http.get(f"https://{host}{path}", params=params)
         response.raise_for_status()
         return response.json()
-
-
-_BY_STATION_COUNT = {"order": "stationcount", "reverse": "true", "hidebroken": "true"}
