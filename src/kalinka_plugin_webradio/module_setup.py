@@ -1,37 +1,50 @@
+import asyncio
+from contextlib import suppress
+from importlib.metadata import version
 from typing import Optional
 
-from kalinka_plugin_sdk.inputmodule import InputModule
 from kalinka_plugin_sdk.plugin import InputModulePlugin, InputPluginContext
 
 from .config_model import WebRadioConfig
+from .directory import RadioBrowserClient
+from .ids import SOURCE
 from .kalinka_plugin_webradio_input_module import WebRadioInputModule
+
+PACKAGE = "kalinka-plugin-webradio"
 
 
 class KalinkaPluginWebRadio(InputModulePlugin):
-    """
-    Kalinka plugin class. This is the main entry point for the plugin.
-    """
+    """The Web Radio plugin: owns the directory client and the input module
+    reading through it, from ``setup()`` until ``shutdown()``."""
+
     REQUIRES_SDK = ">=3.22,<4"
-    PLUGIN_ID = "webradio"
+    PLUGIN_ID = SOURCE
     CONFIG_MODEL = WebRadioConfig
 
     def __init__(self):
-        self.interface = None
+        self.interface: Optional[WebRadioInputModule] = None
+        self._client: Optional[RadioBrowserClient] = None
+        self._discovery: Optional[asyncio.Task] = None
 
-    def get_interface(self) -> Optional[InputModule]:
+    def get_interface(self) -> Optional[WebRadioInputModule]:
         return self.interface
 
     async def setup(self, context: InputPluginContext) -> None:
-        """
-        Entry point used by Kalinka. Register subscriptions, timers, etc.
-        This function must not block.
-        """
-        self.interface = WebRadioInputModule(context.config)
+        # radio-browser asks every client to name itself as app/version.
+        self._client = RadioBrowserClient.create(f"{PACKAGE}/{version(PACKAGE)}")
+        self.interface = WebRadioInputModule(self._client)
+        self._discovery = asyncio.create_task(self._client.discover())
         context.logger.info("%s set up (SDK %s)", self.PLUGIN_ID, context.sdk_version)
 
     async def shutdown(self) -> None:
-        """
-        Entry point used by Kalinka when unloading the plugin. Clean up resources here.
-        Should not raise exceptions - log errors instead.
-        """
+        if self._discovery is not None:
+            self._discovery.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._discovery
+        if self.interface is not None:
+            await self.interface.aclose()
+        if self._client is not None:
+            await self._client.aclose()
         self.interface = None
+        self._client = None
+        self._discovery = None

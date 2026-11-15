@@ -15,6 +15,8 @@ from kalinka_plugin_sdk.api import PlayQueueController
 from kalinka_plugin_sdk.inputmodule import InputModule
 from kalinka_plugin_sdk.plugin import InputPluginContext, cast_plugin_interface
 
+from conftest import FakeDirectory
+
 
 @pytest.mark.smoke
 def test_entry_point_visible():
@@ -138,11 +140,9 @@ def test_config_model_frozen_field():
 @pytest.mark.smoke
 def test_input_module_instantiation():
     """Test that input module can be instantiated"""
-    from kalinka_plugin_webradio.config_model import WebRadioConfig
     from kalinka_plugin_webradio.kalinka_plugin_webradio_input_module import WebRadioInputModule
 
-    config = WebRadioConfig()
-    module = WebRadioInputModule(config)
+    module = WebRadioInputModule(FakeDirectory())
 
     assert module is not None
 
@@ -150,13 +150,13 @@ def test_input_module_instantiation():
 @pytest.mark.smoke
 def test_input_module_name():
     """Test that input module returns correct name"""
-    from kalinka_plugin_webradio.config_model import WebRadioConfig
     from kalinka_plugin_webradio.kalinka_plugin_webradio_input_module import WebRadioInputModule
 
-    config = WebRadioConfig()
-    module = WebRadioInputModule(config)
+    module = WebRadioInputModule(FakeDirectory())
 
-    assert module.module_name() == "Web Radio"
+    # Entity ids name their source by it, so it is the plugin id, not the display name
+    assert module.module_name() == "webradio"
+    assert module.display_name() == "Web Radio"
 
 
 def test_module_setup_constants():
@@ -201,11 +201,9 @@ def test_module_setup_constants():
 )
 def test_input_module_has_required_methods(method_name):
     """Test that input module has all required interface methods, async where the SDK's are"""
-    from kalinka_plugin_webradio.config_model import WebRadioConfig
     from kalinka_plugin_webradio.kalinka_plugin_webradio_input_module import WebRadioInputModule
 
-    config = WebRadioConfig()
-    module = WebRadioInputModule(config)
+    module = WebRadioInputModule(FakeDirectory())
 
     assert hasattr(module, method_name), f"Missing required method: {method_name}"
     assert callable(

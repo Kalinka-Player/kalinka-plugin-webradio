@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+cd "$(dirname "$0")/.."
 
-PLUGIN_SLUG="kalinka-plugin-webradio"
-
-echo "Building wheel for ${PLUGIN_SLUG} using setuptools_scm for version detection"
-
-# Install required build tools
-python3 -m pip install --upgrade build setuptools-scm
-
-# Build the wheel (setuptools_scm will automatically handle version detection and _version.py creation)
-python3 -m build --wheel
+PYTHON="${PYTHON:-python3}"
+git rev-parse --git-dir >/dev/null
+VERSION=$("$PYTHON" -m setuptools_scm)
+echo "Building kalinka-plugin-webradio $VERSION"
+"$PYTHON" -m build --wheel
+test -f "dist/kalinka_plugin_webradio-${VERSION}-py3-none-any.whl"
