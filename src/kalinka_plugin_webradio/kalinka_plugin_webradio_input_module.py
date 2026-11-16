@@ -12,6 +12,7 @@ from kalinka_plugin_sdk.datamodel import (
     EntityType,
     FavoriteIds,
     Playlist,
+    Preview,
 )
 from kalinka_plugin_sdk.filters import (
     FilterQuery,
@@ -28,7 +29,7 @@ from kalinka_plugin_sdk.inputmodule import (
     TrackSource,
 )
 
-from .catalogs import GENRE_FIELD, CatalogTree, name_search, narrowed
+from .catalogs import CATALOG_CARDS, GENRE_FIELD, CatalogTree, name_search, narrowed
 from .directory import DirectoryUnavailable, StationDirectory
 from .ids import DISPLAY_NAME, ROOT, SOURCE, track_id
 from .paging import Searches, StationPages
@@ -82,6 +83,9 @@ class WebRadioInputModule(InputModule):
     def capabilities(self) -> FrozenSet[ModuleCapability]:
         # Search lists the most played matches first, which is the order to keep.
         return frozenset({ModuleCapability.CATALOGS, ModuleCapability.RANKED_SEARCH})
+
+    def root_preview(self) -> Optional[Preview]:
+        return CATALOG_CARDS
 
     async def search(
         self, type: SearchType, query: str, offset=0, limit=50
