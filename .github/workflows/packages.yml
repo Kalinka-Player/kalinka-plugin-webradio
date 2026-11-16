@@ -14,8 +14,8 @@ permissions:
   contents: read
 
 env:
-  # SDK 3.22.0 (Kalinka Player 5.19.0); keep overrides at 3.22 or newer.
-  KALINKA_SDK_REF: ${{ vars.KALINKA_SDK_REF || '5986b63b652e45e32db36ad6d968f88604e4280a' }}
+  # SDK 3.23: Catalog.play_individually; keep overrides at 3.23 or newer.
+  KALINKA_SDK_REF: ${{ vars.KALINKA_SDK_REF || '5e7e47295c30cbf0e55a9ffae2e3ddf1edaf839b' }}
 
 jobs:
   deb:

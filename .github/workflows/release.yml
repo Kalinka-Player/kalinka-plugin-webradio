@@ -64,7 +64,7 @@ jobs:
           sudo apt install ./kalinka-plugin-webradio_${VERSION}_all.deb
           \`\`\`
 
-          Supports Debian 13 and Ubuntu 24.04 on ARM64 and amd64. Requires Kalinka Player 5.19.0 or newer (below 6), SDK 3.22 or newer (below 4), and Python 3.11 or newer. Web Radio is enabled once installed and needs no account.
+          Supports Debian 13 and Ubuntu 24.04 on ARM64 and amd64. Requires Kalinka Player 5.19.0 or newer (below 6), SDK 3.23 or newer (below 4), and Python 3.11 or newer. Web Radio is enabled once installed and needs no account.
           EOF
       - name: Publish package and checksum
         env:

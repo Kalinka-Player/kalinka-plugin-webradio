@@ -4,7 +4,7 @@ Web Radio adds internet radio to [Kalinka Player](https://github.com/Kalinka-Pla
 
 ## Install
 
-Web Radio needs Kalinka Player 5.19.0 or newer on Debian 13 or Ubuntu 24.04, on ARM64 or x86-64. Download the `.deb` and `SHA256SUMS` from the [latest release](https://github.com/Kalinka-Player/kalinka-plugin-webradio/releases/latest), then on the Kalinka Player server run:
+Web Radio needs Kalinka Player 5.19.0 or newer with SDK 3.23 or newer (below 4), on Debian 13 or Ubuntu 24.04, on ARM64 or x86-64. Download the `.deb` and `SHA256SUMS` from the [latest release](https://github.com/Kalinka-Player/kalinka-plugin-webradio/releases/latest), then on the Kalinka Player server run:
 
 ```sh
 sha256sum -c SHA256SUMS --ignore-missing
@@ -21,6 +21,10 @@ Every list can be searched by station name and narrowed by genre. The genre filt
 
 Web Radio keeps no favorites or playlists of its own. Add stations to a Kalinka collection instead.
 
+Station catalogues declare `play_individually` (SDK 3.23). In clients supporting
+this flag, choosing a station replaces the queue with that station alone.
+Explicit queue actions and saved collections remain available.
+
 ## Limitations
 
 Only stations whose streams the renderer can decode are listed: MP3, AAC and FLAC. Stations that stream over HLS, or in Opus or Ogg, are left out.
@@ -36,9 +40,8 @@ git clone https://github.com/Kalinka-Player/kalinka-plugin-webradio.git
 cd kalinka-plugin-webradio
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install \
-  "kalinka-plugin-sdk @ git+https://github.com/Kalinka-Player/KalinkaPlayer@5986b63b652e45e32db36ad6d968f88604e4280a#subdirectory=packages/kalinka-plugin-sdk" \
-  -e '.[dev]'
+# Use a sibling KalinkaPlayer checkout containing SDK 3.23 or newer.
+python -m pip install -e ../KalinkaPlayer/packages/kalinka-plugin-sdk -e '.[dev]'
 python -m pytest
 ./scripts/build_deb.sh
 ```

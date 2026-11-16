@@ -338,6 +338,7 @@ def _card(
             filters=filters,
             preview_config=preview,
             role=role,
+            play_individually=CatalogTree.is_station_listing(slug),
         ),
     )
 
