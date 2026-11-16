@@ -47,8 +47,9 @@ STATION_PREVIEW = Preview(
     card_size=CardSize.SMALL,
 )
 
-INDEX_PREVIEW = Preview(
-    type=PreviewType.TEXT_ONLY,
+# Clients open a listing previewed as image cards as a grid of cards.
+CATALOG_CARDS = Preview(
+    type=PreviewType.IMAGE_TEXT,
     content_type=PreviewContentType.CATALOG,
     items_count=20,
     rows_count=2,
@@ -358,7 +359,7 @@ def _index_card(index: _Index) -> BrowseItem:
         index.title,
         description=index.description,
         filters=index.filters,
-        preview=INDEX_PREVIEW,
+        preview=CATALOG_CARDS,
         role=index.role,
     )
 
