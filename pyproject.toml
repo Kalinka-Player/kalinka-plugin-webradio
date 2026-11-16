@@ -24,8 +24,8 @@ classifiers = [
 ]
 
 dependencies = [
-    # 3.22: ModuleCapability.RANKED_SEARCH, which keeps the most played matches first.
-    "kalinka-plugin-sdk>=3.22,<4",
+    # 3.23: Catalog.play_individually keeps station clicks out of a bulk queue.
+    "kalinka-plugin-sdk>=3.23,<4",
     "httpx>=0.24",
 ]
 

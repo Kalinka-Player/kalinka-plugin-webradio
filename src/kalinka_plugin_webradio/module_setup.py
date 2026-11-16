@@ -17,7 +17,7 @@ class KalinkaPluginWebRadio(InputModulePlugin):
     """The Web Radio plugin: owns the directory client and the input module
     reading through it, from ``setup()`` until ``shutdown()``."""
 
-    REQUIRES_SDK = ">=3.22,<4"
+    REQUIRES_SDK = ">=3.23,<4"
     PLUGIN_ID = SOURCE
     CONFIG_MODEL = WebRadioConfig
 

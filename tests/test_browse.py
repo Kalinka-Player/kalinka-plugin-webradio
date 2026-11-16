@@ -330,3 +330,27 @@ def test_the_module_offers_catalogs_and_keeps_its_search_order():
     }
     assert module.module_name() == "webradio"
     assert module.display_name() == "Web Radio"
+
+
+async def test_station_cards_play_individually_in_browse_and_metadata():
+    module = WebRadioInputModule(
+        FakeDirectory(
+            countries=[{"name": "Germany", "iso_3166_1": "DE", "stationcount": 12}],
+            languages=[{"name": "english", "iso_639": "en", "stationcount": 12}],
+        )
+    )
+    root = await module.browse(catalog("root"))
+    assert [item.catalog.play_individually for item in root.items] == [
+        True, True, True, True, False, False, False,
+    ]
+    for slug in (
+        "popular", "trending", "top-voted", "high-quality",
+        "genre-rock", "country-DE", "language-en",
+    ):
+        item = await module.get(catalog(slug))
+        assert item.catalog.play_individually, slug
+    for slug in ("genres", "countries", "languages"):
+        assert not (await module.get(catalog(slug))).catalog.play_individually
+        listing = await module.browse(catalog(slug))
+        assert listing.items
+        assert all(item.catalog.play_individually for item in listing.items)

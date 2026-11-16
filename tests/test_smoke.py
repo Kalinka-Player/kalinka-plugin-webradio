@@ -164,7 +164,7 @@ def test_module_setup_constants():
     from kalinka_plugin_webradio.module_setup import KalinkaPluginWebRadio
 
     plugin_class = KalinkaPluginWebRadio
-    assert plugin_class.REQUIRES_SDK == ">=3.22,<4"
+    assert plugin_class.REQUIRES_SDK == ">=3.23,<4"
     assert plugin_class.PLUGIN_ID == "webradio"
     assert plugin_class.CONFIG_MODEL is not None
 
