@@ -26,7 +26,7 @@ def inspect(path: Path):
         ).strip()
     assert fields["Package"] == project["name"]
     assert fields["Architecture"] == "all"
-    assert "kalinka-server (>= 5.19.0)" in fields["Depends"]
+    assert "kalinka-server (>= 5.20.0)" in fields["Depends"]
     assert "kalinka-server (<< 6)" in fields["Depends"]
     assert "kalinka-plugin-sdk (>= 3.23)" in fields["Depends"]
     assert "kalinka-plugin-sdk (<< 4)" in fields["Depends"]

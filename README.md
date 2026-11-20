@@ -4,7 +4,7 @@ Web Radio adds internet radio to [Kalinka Player](https://github.com/Kalinka-Pla
 
 ## Install
 
-Web Radio needs Kalinka Player 5.19.0 or newer with SDK 3.23 or newer (below 4), on Debian 13 or Ubuntu 24.04, on ARM64 or x86-64. Download the `.deb` and `SHA256SUMS` from the [latest release](https://github.com/Kalinka-Player/kalinka-plugin-webradio/releases/latest), then on the Kalinka Player server run:
+Web Radio needs Kalinka Player 5.20.0 or newer with SDK 3.23 or newer (below 4), on Debian 13 or Ubuntu 24.04, on ARM64 or x86-64. Download the `.deb` and `SHA256SUMS` from the [latest release](https://github.com/Kalinka-Player/kalinka-plugin-webradio/releases/latest), then on the Kalinka Player server run:
 
 ```sh
 sha256sum -c SHA256SUMS --ignore-missing
@@ -21,9 +21,7 @@ Every list can be searched by station name and narrowed by genre. The genre filt
 
 Web Radio keeps no favorites or playlists of its own. Add stations to a Kalinka collection instead.
 
-Station catalogues declare `play_individually` (SDK 3.23). In clients supporting
-this flag, choosing a station replaces the queue with that station alone.
-Explicit queue actions and saved collections remain available.
+Choosing a station plays that station alone in place of the queue, in Kalinka app 0.28.0 or newer; an older app queues the stations after it as well. Add to queue and collections work as for any other track.
 
 ## Limitations
 

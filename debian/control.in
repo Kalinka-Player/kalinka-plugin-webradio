@@ -3,7 +3,7 @@ Version: @VERSION@
 Section: python
 Priority: optional
 Architecture: all
-Depends: kalinka-server (>= 5.19.0), kalinka-server (<< 6), kalinka-plugin-sdk (>= 3.23), kalinka-plugin-sdk (<< 4), python3 (>= 3.11), ca-certificates
+Depends: kalinka-server (>= 5.20.0), kalinka-server (<< 6), kalinka-plugin-sdk (>= 3.23), kalinka-plugin-sdk (<< 4), python3 (>= 3.11), ca-certificates
 Maintainer: Dmitry Savin <envelsavinds@gmail.com>
 Description: Internet radio for Kalinka Player from radio-browser.info
  Lists stations from the radio-browser.info directory by popularity, genre,
